@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"purchase-cart-service/repository"
@@ -36,7 +37,7 @@ func main() {
 	router := httpapi.NewRouter(orderHandler)
 
 	log.Println("Purchase Cart Service started on :8080")
-	if err := http.ListenAndServe(cfg.Port, router); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", cfg.WebApp.HostName, cfg.WebApp.Port), router); err != nil {
 		log.Fatal(err)
 	}
 }

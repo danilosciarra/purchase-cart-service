@@ -3,15 +3,17 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
+	"path/filepath"
 )
 
 // Config holds application configuration values
 type Config struct {
-	VATRate  float64
-	Port     string
-	WebApp   Server
-	Database Database
+	VATRate     float64
+	ServiceName string
+	WebApp      Server
+	Database    Database
 }
 type Server struct {
 	HostName string
@@ -30,7 +32,13 @@ type Database struct {
 // and applies sensible defaults for local development
 func Load() *Config {
 	var cfg Config
-	bConfig, err := os.ReadFile("config.json")
+	//get directory of executable
+	exePath, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
+	dir := filepath.Dir(exePath)
+	bConfig, err := os.ReadFile(fmt.Sprintf("%s/config.json", dir))
 	if err != nil {
 		panic(fmt.Sprintf("Error on reading config file. Error:%s", err.Error()))
 	}
