@@ -1,13 +1,18 @@
 package models
 
+import "time"
+
 type Order struct {
 	ID         string
 	Items      []Item
-	TotalPrice int64
-	TotalVAT   int64
+	TotalPrice float64
+	TotalVAT   float64
+	CreatedAt  time.Time
 }
 
 type Item struct {
 	ProductID string
 	Quantity  int
+	UnitPrice float64
+	VAT       float64
 }

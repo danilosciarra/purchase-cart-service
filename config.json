@@ -2,7 +2,7 @@
   "ServiceName": "purchase-cart",
   "WebApp": {
     "Hostname": "0.0.0.0",
-    "Port": 80
+    "Port": 8080
   },
   "Database": {
     "Type": "InMemory",

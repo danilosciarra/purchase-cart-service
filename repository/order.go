@@ -9,6 +9,7 @@ import (
 type OrderRepository interface {
 	Save(ctx context.Context, order *models.Order) error
 	GetByID(ctx context.Context, id string) (*models.Order, error)
+	GetAll(ctx context.Context) ([]*models.Order, error)
 }
 
 func NewOrderRepository(repoType string) OrderRepository {
