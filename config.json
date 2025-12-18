@@ -1,0 +1,15 @@
+{
+  "ServiceName": "purchase-cart",
+  "WebApp": {
+    "Hostname": "0.0.0.0",
+    "Port": 8080
+  },
+  "Database": {
+    "Type": "InMemory",
+    "Host": "localhost",
+    "Port": 5432,
+    "User": "db",
+    "Password": "password",
+    "Name": "purchase_cart_db"
+  }
+}
