@@ -17,7 +17,7 @@ Microservizio Go per la gestione del carrello acquisti e degli ordini. Espone AP
 
 ```
 purchase-cart-service/
-├── cmd/                  # Entrypoint dell'applicazione (main.go)
+├── cmd/                  
 ├── internal/
 │   └── api/
 │       └── http/
@@ -26,6 +26,7 @@ purchase-cart-service/
 │   └── domain/
 │       └── order/        # Logica di dominio ordini
 ├── docs/                 # Documentazione Swagger generata
+├── main.go			   # Entrypoint dell'applicazione (main.go)
 ├── go.mod
 ├── go.sum
 ├── README.md
