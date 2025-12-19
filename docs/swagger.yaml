@@ -53,18 +53,7 @@ info:
   title: Purchase Cart Service API
   version: "1.0"
 paths:
-  /health:
-    get:
-      description: Verifica lo stato del servizio
-      responses:
-        "200":
-          description: ok
-          schema:
-            type: string
-      summary: Health check
-      tags:
-      - health
-  /orders:
+  /api/v1/orders:
     get:
       description: Recupera una lista di tutti gli ordini
       produces:
@@ -108,7 +97,7 @@ paths:
       summary: Crea un nuovo ordine
       tags:
       - orders
-  /orders/{id}:
+  /api/v1/orders/{id}:
     get:
       description: Recupera i dettagli di un ordine utilizzando il suo ID
       parameters:
@@ -139,4 +128,18 @@ paths:
       summary: Ottieni un ordine per ID
       tags:
       - orders
+  /health:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Health check
+      tags:
+      - health
+schemes:
+- http
 swagger: "2.0"

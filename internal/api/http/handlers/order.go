@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	httpapi "purchase-cart-service/internal/api/http"
 	"purchase-cart-service/internal/domain/order"
 	"strings"
 )
@@ -44,6 +45,26 @@ func NewOrderHandler(domain *order.Service) *OrderHandler {
 	return &OrderHandler{domain: domain}
 }
 
+func (h *OrderHandler) GetHandlers() []httpapi.HandlersMethods {
+	return []httpapi.HandlersMethods{
+		{
+			Method:  "POST",
+			Route:   "/orders",
+			Handler: h.CreateOrder,
+		},
+		{
+			Method:  "GET",
+			Route:   "/orders/:id",
+			Handler: h.GetOrder,
+		},
+		{
+			Method:  "GET",
+			Route:   "/orders",
+			Handler: h.GetOrders,
+		},
+	}
+}
+
 // CreateOrder Orders
 // @Summary Crea un nuovo ordine
 // @Description Crea un nuovo ordine nel sistema
@@ -53,7 +74,7 @@ func NewOrderHandler(domain *order.Service) *OrderHandler {
 // @Param order body handlers.OrderRequest true "Dati ordine"
 // @Success 201 {object} handlers.OrderResponse
 // @Failure 400 {object} handlers.ErrorResponse
-// @Router /orders [post]
+// @Router /api/v1/orders [post]
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var req OrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -101,7 +122,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 // @Failure 400 {object} handlers.ErrorResponse
 // @Failure 404 {object} handlers.ErrorResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /orders/{id} [get]
+// @Router /api/v1/orders/{id} [get]
 func (h *OrderHandler) GetOrder(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
@@ -141,7 +162,7 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 // @Produce json
 // @Success 200 {array} handlers.OrderResponse
 // @Failure 500 {object} handlers.ErrorResponse
-// @Router /orders [get]
+// @Router /api/v1/orders [get]
 func (h *OrderHandler) GetOrders(c *gin.Context) {
 	// Implementation for listing all orders can be added here
 	var resp []OrderResponse

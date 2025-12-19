@@ -6,31 +6,63 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 	"purchase-cart-service/docs"
-	_ "purchase-cart-service/docs"
-	"purchase-cart-service/internal/api/http/handlers"
 )
+
+type Router struct {
+	router *gin.Engine
+}
+type HandlersMethods struct {
+	Method  string
+	Route   string
+	Handler gin.HandlerFunc
+}
+type IHandler interface {
+	GetHandlers() []HandlersMethods
+}
 
 // @title Purchase Cart Service API
 // @version 1.0
 // @description API per la gestione degli ordini del carrello acquisti
 // @host localhost:8080
 // @BasePath /
+// @schemes http
 
 // NewRouter configures and returns the HTTP router for the service
-func NewRouter(orderHandler *handlers.OrderHandler) http.Handler {
+func NewRouter() *Router {
 	router := gin.Default()
-	hCheck := &handlers.HealthCheckHandler{}
-	docs.SwaggerInfo.BasePath = "/api/v1"
+
+	// Config Swagger runtime: metadati corretti per includere tutte le route
+	docs.SwaggerInfo.Title = "Purchase Cart Service API"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost:8080"
+	docs.SwaggerInfo.BasePath = "/"
+	docs.SwaggerInfo.Schemes = []string{"http"}
+	docs.SwaggerInfo.Description = "API per la gestione degli ordini del carrello acquisti"
 
 	// Swagger endpoint
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	v1 := router.Group("/api/v1")
-	v1.GET("/health", hCheck.Healthcheck)
+	return &Router{router: router}
+}
 
-	v1.GET("/orders/:id", orderHandler.GetOrder)
-	v1.GET("/orders", orderHandler.GetOrders)
-	v1.POST("/orders", orderHandler.CreateOrder)
+func (r *Router) RegisterMethods(group string, handlers ...IHandler) {
+	routes := r.router.Group(group)
+	for _, h := range handlers {
+		for _, handler := range h.GetHandlers() {
+			switch handler.Method {
+			case "GET":
+				routes.GET(handler.Route, handler.Handler)
+			case "POST":
+				routes.POST(handler.Route, handler.Handler)
+			case "PUT":
+				routes.PUT(handler.Route, handler.Handler)
+			case "DELETE":
+				routes.DELETE(handler.Route, handler.Handler)
+			}
+		}
+	}
+}
 
-	return router
+func (r *Router) Get() http.Handler {
+	return r.router
 }

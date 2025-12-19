@@ -1,4 +1,7 @@
 {
+    "schemes": [
+        "http"
+    ],
     "swagger": "2.0",
     "info": {
         "description": "API per la gestione degli ordini del carrello acquisti",
@@ -9,24 +12,7 @@
     "host": "localhost:8080",
     "basePath": "/",
     "paths": {
-        "/health": {
-            "get": {
-                "description": "Verifica lo stato del servizio",
-                "tags": [
-                    "health"
-                ],
-                "summary": "Health check",
-                "responses": {
-                    "200": {
-                        "description": "ok",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/orders": {
+        "/api/v1/orders": {
             "get": {
                 "description": "Recupera una lista di tutti gli ordini",
                 "produces": [
@@ -93,7 +79,7 @@
                 }
             }
         },
-        "/orders/{id}": {
+        "/api/v1/orders/{id}": {
             "get": {
                 "description": "Recupera i dettagli di un ordine utilizzando il suo ID",
                 "produces": [
@@ -135,6 +121,25 @@
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
