@@ -1,80 +1,62 @@
 # Purchase Cart Service
 
-REST service written in **Go** using **Gin** that implements a simplified **purchase cart / order service**.
-
-The project was developed as a coding test and focuses on **clarity, separation of concerns, and clean architecture**, keeping the scope intentionally limited.
-
----
+REST service in **Go/Gin** to create orders from a list of products. Focused on simplicity and separation of concerns.
 
 ## Overview
 
 The service exposes HTTP APIs to:
-- create an order from a list of items
-- return order ID, total price, total VAT, and per-item details
-- browse a **preloaded, read-only product catalog**
-
----
+- create an order from a set of items
+- return order ID, total price, total VAT, and per-line details
+- browse a preloaded product catalog (not editable via API)
 
 ## Quickstart
 
-### Local
+- Local run:
 ```bash
 go run ./main.go
 ```
-
-### Docker
+- Docker:
 ```bash
 docker build -t purchase-cart-service .
 docker run -p 8080:8080 purchase-cart-service
 ```
 
----
+## APIs (base path: /api/v1)
 
-## API (base path: `/api/v1`)
+- Health Check
+  - `GET /api/v1/health` → `200 OK` + `ok`
+- Create Order
+  - `POST /api/v1/orders`
+  - Request (decimal amounts):
+    ```json
+    {
+      "country_code":"it",
+      "items": [
+        { "product_id": "A123", "quantity": 2, }
+      ]
+    }
+    ```
+  - Response (22% VAT):
+    ```json
+    {
+      "order_id": "uuid",
+      "total_price": 24.40,
+      "total_vat": 4.40,
+      "items": [
+        { "product_id": "A123","name":"product name", "quantity": 2, "unit_price": 10.00, "vat": 4.40 }
+      ]
+    }
+    ```
 
-### Health check
-```
-GET /health
-```
-
-### Create order
-```
-POST /orders
-```
-
-Request:
-```json
-{
-  "country_code": "it",
-  "items": [
-    { "product_id": "A123", "quantity": 2 }
-  ]
-}
-```
-
-Response (example):
-```json
-{
-  "order_id": "uuid",
-  "total_price": 24.40,
-  "total_vat": 4.40,
-  "items": [
-    { "product_id": "A123", "name": "product name", "quantity": 2, "unit_price": 10.00, "vat": 4.40 }
-  ]
-}
-```
-
-### Products
-- `GET /products` → list products
-- `GET /products/:id` → product details
-
-Products are loaded at startup and cannot be modified via API.
-
----
+- Products
+  - Product catalog is preloaded at startup: products cannot be created or modified via API.
+  - `GET /api/v1/products` → product list
+  - `GET /api/v1/products/:id` → product details by ID
+  // Note: `POST /api/v1/products` is not available in this project.
 
 ## Architecture
 
-Layered architecture with clear separation of responsibilities:
+Layered architecture, organized in subfolders to separate responsibilities.
 
 Structure (simplified):
 ```
@@ -124,7 +106,16 @@ Layers and responsibilities:
   - product_repository: product persistence/lookup; the catalog is loaded at startup and does not support inserts via API.
 - docs: generated Swagger files.
 
----
+## Amount conventions
+
+- Decimal amounts.
+- `total_price` = net total + total VAT.
+- `items[].vat` = VAT of the line total.
+- Example VAT rate: 22%.
+
+## API documentation
+
+API Swagger is generated using **Swaggo**.
 
 ## Configuration
 
@@ -157,12 +148,3 @@ Example:
 
 Notes:
 - With `Database.Type = "InMemory"` DB parameters can be ignored.
-
----
-
-## Notes
-
-- Swagger documentation is generated using **Swaggo**.
-
----
-

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	httpapi "purchase-cart-service/internal/api/http"
@@ -113,6 +114,15 @@ func TestCreateOrderHandler_OK(t *testing.T) {
 			t.Errorf("VAT non valida, got=%.2f", it.VAT)
 		}
 	}
+
+	require.Equal(t, 1, len(resp.Items))
+
+	item := resp.Items[0]
+
+	require.Equal(t, "prod1", item.ProductID)
+	require.Equal(t, 2, item.Quantity)
+	require.Equal(t, 10.00, item.UnitPrice)
+	require.Equal(t, 24.40, item.VAT)
 }
 
 // body privo di items → 400 Bad Request
