@@ -33,7 +33,7 @@ func createOrderForTest(t *testing.T, r *gin.Engine) string {
 		},
 	}
 	b, _ := json.Marshal(body)
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/orders", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -63,7 +63,7 @@ func TestCreateOrderHandler_OK(t *testing.T) {
 	}
 	b, _ := json.Marshal(body)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/orders", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -125,7 +125,7 @@ func TestCreateOrderHandler_BadRequest_NoItems(t *testing.T) {
 	}
 	b, _ := json.Marshal(body)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/orders", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -148,7 +148,7 @@ func TestCreateOrderHandler_BadRequest_InvalidQuantity(t *testing.T) {
 	}
 	b, _ := json.Marshal(body)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/orders", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -163,7 +163,7 @@ func TestCreateOrderHandler_BadRequest_InvalidQuantity(t *testing.T) {
 func TestCreateOrderHandler_BadRequest_InvalidJSON(t *testing.T) {
 	r := setupRouterForOrders()
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders", bytes.NewBufferString("{invalid json"))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/orders", bytes.NewBufferString("{invalid json"))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -186,7 +186,7 @@ func TestCreateOrderHandler_ProductNotFound(t *testing.T) {
 	}
 	b, _ := json.Marshal(body)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/orders", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -209,7 +209,7 @@ func TestCreateOrderHandler_InvalidCountryCode(t *testing.T) {
 	}
 	b, _ := json.Marshal(body)
 
-	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders", bytes.NewReader(b))
+	req := httptest.NewRequest(http.MethodPut, "/api/v1/orders", bytes.NewReader(b))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 

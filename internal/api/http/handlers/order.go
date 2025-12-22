@@ -48,7 +48,7 @@ func NewOrderHandler(domain *order.Service) *OrderHandler {
 func (h *OrderHandler) GetHandlers() []httpapi.HandlersMethods {
 	return []httpapi.HandlersMethods{
 		{
-			Method:  "POST",
+			Method:  "PUT",
 			Route:   "/orders",
 			Handler: h.CreateOrder,
 		},
@@ -74,7 +74,7 @@ func (h *OrderHandler) GetHandlers() []httpapi.HandlersMethods {
 // @Param order body handlers.OrderRequest true "Dati ordine"
 // @Success 201 {object} handlers.OrderResponse
 // @Failure 400 {object} handlers.ErrorResponse
-// @Router /api/v1/orders [post]
+// @Router /api/v1/orders [put]
 func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	var req OrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

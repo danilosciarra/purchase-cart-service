@@ -86,7 +86,7 @@ paths:
       summary: Elenca tutti gli ordini
       tags:
       - Orders
-    post:
+    put:
       consumes:
       - application/json
       description: Crea un nuovo ordine nel sistema

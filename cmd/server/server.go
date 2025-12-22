@@ -30,8 +30,7 @@ func New(cfg *config.Config) *Server {
 	oh := handlers.NewOrderHandler(order.NewService(orderRepo, vatRepo, productRepo))
 	ph := handlers.NewProductHandler(product.NewService(productRepo, vatRepo))
 	srv.router.RegisterMethods("/", hc)
-	srv.router.RegisterMethods("/api/v1", oh)
-	srv.router.RegisterMethods("/api/v1", ph)
+	srv.router.RegisterMethods("/api/v1", oh, ph)
 	return srv
 }
 

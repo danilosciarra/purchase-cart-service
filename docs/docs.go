@@ -43,7 +43,7 @@ const docTemplate = `{
                     }
                 }
             },
-            "post": {
+            "put": {
                 "description": "Crea un nuovo ordine nel sistema",
                 "consumes": [
                     "application/json"
