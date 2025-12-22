@@ -12,6 +12,7 @@ type Order struct {
 
 type Item struct {
 	ProductID string
+	Name      string
 	Quantity  int
 	UnitPrice float64
 	VAT       float64

@@ -3,60 +3,59 @@ package order
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
-	"math"
+	"purchase-cart-service/internal/domain/product"
 	"purchase-cart-service/models"
 	"purchase-cart-service/repository"
-	"time"
+	"purchase-cart-service/utils"
 )
 
 type Service struct {
-	orderRepo repository.OrderRepository
-	vatRepo   repository.VatRateRepository
+	orderRepo   repository.OrderRepository
+	productRepo repository.ProductRepository
+	vatRepo     repository.VatRateRepository
 }
 
-func NewService(orderRepo repository.OrderRepository, vatRepo repository.VatRateRepository) *Service {
+func NewService(orderRepo repository.OrderRepository, vatRepo repository.VatRateRepository, productRepo repository.ProductRepository) *Service {
 	return &Service{
-		orderRepo: orderRepo,
-		vatRepo:   vatRepo,
+		orderRepo:   orderRepo,
+		vatRepo:     vatRepo,
+		productRepo: productRepo,
 	}
 }
 
 var ErrInvalidItem = errors.New("invalid order item")
-
-// CreateItem is the input DTO for creating orders
-type CreateItem struct {
-	ProductID string
-	Quantity  int
-	UnitPrice float64
-}
 
 func (s *Service) CreateOrder(ctx context.Context, countryCode string, items []CreateItem) (*models.Order, error) {
 	if len(items) == 0 {
 		return nil, ErrInvalidItem
 	}
 
-	order := &models.Order{
-		ID:        uuid.NewString(),
-		CreatedAt: time.Now(),
-	}
+	order := &models.Order{}
 	for _, it := range items {
-		if it.Quantity <= 0 || it.UnitPrice <= 0 {
+		product, err := s.productRepo.GetProduct(ctx, it.ProductID)
+		if err != nil {
+			return nil, err
+		}
+		if product == nil {
+			return nil, ErrInvalidItem
+		}
+		if it.Quantity <= 0 || product.Price <= 0 {
 			return nil, ErrInvalidItem
 		}
 
-		linePrice := float64(it.Quantity) * it.UnitPrice
+		linePrice := float64(it.Quantity) * product.Price
 		vatRate, err := s.vatRepo.GetVATRate(countryCode)
 		if err != nil {
 			return nil, err
 		}
-		vat := round2(linePrice * vatRate)
-		total := round2(linePrice + vat)
+		vat := utils.Round2(linePrice * vatRate)
+		total := utils.Round2(linePrice + vat)
 
 		order.Items = append(order.Items, models.Item{
 			ProductID: it.ProductID,
+			Name:      product.Name,
 			Quantity:  it.Quantity,
-			UnitPrice: it.UnitPrice,
+			UnitPrice: product.Price,
 			VAT:       total,
 		})
 
@@ -64,8 +63,8 @@ func (s *Service) CreateOrder(ctx context.Context, countryCode string, items []C
 		order.TotalPrice += total
 	}
 
-	order.TotalVAT = round2(order.TotalVAT)
-	order.TotalPrice = round2(order.TotalPrice)
+	order.TotalVAT = utils.Round2(order.TotalVAT)
+	order.TotalPrice = utils.Round2(order.TotalPrice)
 	if err := s.orderRepo.Save(ctx, order); err != nil {
 		return nil, err
 	}
@@ -73,13 +72,70 @@ func (s *Service) CreateOrder(ctx context.Context, countryCode string, items []C
 	return order, nil
 }
 
-func (s *Service) GetOrderByID(ctx context.Context, id string) (*models.Order, error) {
-	return s.orderRepo.GetByID(ctx, id)
+func (s *Service) GetOrderByID(ctx context.Context, id string) (*Detail, error) {
+	order, err := s.orderRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if order == nil {
+		return nil, nil
+	}
+	return s.GetOrderDetail(ctx, order)
+
 }
-func (s *Service) GetAllOrders(ctx context.Context) ([]*models.Order, error) {
-	return s.orderRepo.GetAll(ctx)
+func (s *Service) GetAllOrders(ctx context.Context) ([]*Detail, error) {
+	orders, err := s.orderRepo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var details []*Detail
+	for _, order := range orders {
+		detail, err := s.GetOrderDetail(ctx, order)
+		if err != nil {
+			return nil, err
+		}
+		details = append(details, detail)
+	}
+	return details, nil
 }
 
-func round2(val float64) float64 {
-	return math.Round(val*100) / 100
+func (s *Service) GetOrderDetail(ctx context.Context, order *models.Order) (*Detail, error) {
+	var products []ProductDetail
+	for _, item := range order.Items {
+		product, err := s.productRepo.GetProduct(ctx, item.ProductID)
+		if err != nil {
+			return nil, err
+		}
+		if product != nil {
+			product.Price = item.UnitPrice
+			products = append(products, ProductDetail{
+				Product:  *product,
+				VAT:      item.VAT,
+				Quantity: item.Quantity,
+			})
+		}
+	}
+	return &Detail{
+		Id:         order.ID,
+		TotalPrice: order.TotalPrice,
+		TotalVAT:   order.TotalVAT,
+		Items:      products,
+	}, nil
+}
+
+func (s *Service) GetAllProducts(ctx context.Context) ([]product.Detail, error) {
+	products, err := s.productRepo.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var details []product.Detail
+	for _, p := range products {
+		details = append(details, product.Detail{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+			Price:       p.Price,
+		})
+	}
+	return details, nil
 }

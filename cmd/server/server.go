@@ -7,11 +7,11 @@ import (
 	"purchase-cart-service/internal/api/http/handlers"
 	"purchase-cart-service/internal/config"
 	"purchase-cart-service/internal/domain/order"
+	"purchase-cart-service/internal/domain/product"
 	"purchase-cart-service/repository"
 )
 
 type Server struct {
-	order    *order.Service
 	router   *httpapi.Router
 	hostname string
 	port     int
@@ -20,16 +20,18 @@ type Server struct {
 func New(cfg *config.Config) *Server {
 	orderRepo := repository.NewOrderRepository(cfg.Database.Type)
 	vatRepo := repository.NewVatRateRepository(cfg.Database.Type)
+	productRepo := repository.NewProductRepository(cfg.Database.Type)
 	srv := &Server{
-		order:    order.NewService(orderRepo, vatRepo),
 		router:   httpapi.NewRouter(),
 		hostname: cfg.WebApp.HostName,
 		port:     cfg.WebApp.Port,
 	}
 	hc := handlers.NewHealthCheckHandler()
-	oh := handlers.NewOrderHandler(srv.order)
+	oh := handlers.NewOrderHandler(order.NewService(orderRepo, vatRepo, productRepo))
+	ph := handlers.NewProductHandler(product.NewService(productRepo, vatRepo))
 	srv.router.RegisterMethods("/", hc)
 	srv.router.RegisterMethods("/api/v1", oh)
+	srv.router.RegisterMethods("/api/v1", ph)
 	return srv
 }
 

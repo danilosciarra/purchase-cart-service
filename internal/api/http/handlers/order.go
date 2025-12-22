@@ -14,9 +14,8 @@ type OrderHandler struct {
 
 type OrderRequest struct {
 	Items []struct {
-		ProductID string  `json:"product_id"`
-		Quantity  int     `json:"quantity"`
-		UnitPrice float64 `json:"unit_price"` // cents
+		ProductID string `json:"product_id"`
+		Quantity  int    `json:"quantity"`
 	} `json:"items"`
 	CountryCode string `json:"country_code"`
 }
@@ -31,6 +30,7 @@ type OrderResponse struct {
 
 type orderItemReply struct {
 	ProductID string  `json:"product_id"`
+	Name      string  `json:"name"`
 	Quantity  int     `json:"quantity"`
 	UnitPrice float64 `json:"unit_price"`
 	VAT       float64 `json:"vat"`
@@ -68,7 +68,7 @@ func (h *OrderHandler) GetHandlers() []httpapi.HandlersMethods {
 // CreateOrder Orders
 // @Summary Crea un nuovo ordine
 // @Description Crea un nuovo ordine nel sistema
-// @Tags orders
+// @Tags Orders
 // @Accept json
 // @Produce json
 // @Param order body handlers.OrderRequest true "Dati ordine"
@@ -86,7 +86,6 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		items = append(items, order.CreateItem{
 			ProductID: it.ProductID,
 			Quantity:  it.Quantity,
-			UnitPrice: it.UnitPrice,
 		})
 	}
 	ord, err := h.domain.CreateOrder(c.Request.Context(), strings.ToUpper(req.CountryCode), items)
@@ -103,6 +102,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	for _, it := range ord.Items {
 		resp.Items = append(resp.Items, orderItemReply{
 			ProductID: it.ProductID,
+			Name:      it.Name,
 			Quantity:  it.Quantity,
 			UnitPrice: it.UnitPrice,
 			VAT:       it.VAT,
@@ -115,7 +115,7 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 // GetOrder
 // @Summary Ottieni un ordine per ID
 // @Description Recupera i dettagli di un ordine utilizzando il suo ID
-// @Tags orders
+// @Tags Orders
 // @Produce json
 // @Param id path string true "ID Ordine"
 // @Success 200 {object} handlers.OrderResponse
@@ -139,16 +139,17 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 		return
 	}
 	resp := OrderResponse{
-		OrderID:    ord.ID,
+		OrderID:    ord.Id,
 		TotalPrice: ord.TotalPrice,
 		TotalVAT:   ord.TotalVAT,
 	}
 
 	for _, it := range ord.Items {
 		resp.Items = append(resp.Items, orderItemReply{
-			ProductID: it.ProductID,
+			ProductID: it.ID,
+			Name:      it.Name,
 			Quantity:  it.Quantity,
-			UnitPrice: it.UnitPrice,
+			UnitPrice: it.Price,
 			VAT:       it.VAT,
 		})
 	}
@@ -158,7 +159,7 @@ func (h *OrderHandler) GetOrder(c *gin.Context) {
 // GetOrders
 // @Summary Elenca tutti gli ordini
 // @Description Recupera una lista di tutti gli ordini
-// @Tags orders
+// @Tags Orders
 // @Produce json
 // @Success 200 {array} handlers.OrderResponse
 // @Failure 500 {object} handlers.ErrorResponse
@@ -173,16 +174,17 @@ func (h *OrderHandler) GetOrders(c *gin.Context) {
 	}
 	for _, ord := range orders {
 		orderResp := OrderResponse{
-			OrderID:    ord.ID,
+			OrderID:    ord.Id,
 			TotalPrice: ord.TotalPrice,
 			TotalVAT:   ord.TotalVAT,
 		}
 
 		for _, it := range ord.Items {
 			orderResp.Items = append(orderResp.Items, orderItemReply{
-				ProductID: it.ProductID,
+				ProductID: it.ID,
+				Name:      it.Name,
 				Quantity:  it.Quantity,
-				UnitPrice: it.UnitPrice,
+				UnitPrice: it.Price,
 				VAT:       it.VAT,
 			})
 		}

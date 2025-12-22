@@ -22,7 +22,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "orders"
+                    "Orders"
                 ],
                 "summary": "Elenca tutti gli ordini",
                 "responses": {
@@ -52,7 +52,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "orders"
+                    "Orders"
                 ],
                 "summary": "Crea un nuovo ordine",
                 "parameters": [
@@ -89,7 +89,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "orders"
+                    "Orders"
                 ],
                 "summary": "Ottieni un ordine per ID",
                 "parameters": [
@@ -118,6 +118,46 @@ const docTemplate = `{
                         "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/products": {
+            "get": {
+                "description": "Retrieve a list of all products",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Get All Products",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Country Code for VAT calculation",
+                        "name": "country_code",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/handlers.ProductResponse"
+                            }
                         }
                     },
                     "500": {
@@ -174,10 +214,6 @@ const docTemplate = `{
                             },
                             "quantity": {
                                 "type": "integer"
-                            },
-                            "unit_price": {
-                                "description": "cents",
-                                "type": "number"
                             }
                         }
                     }
@@ -204,9 +240,35 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.ProductResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "price_with_vat": {
+                    "type": "number"
+                },
+                "vat": {
+                    "type": "number"
+                }
+            }
+        },
         "handlers.orderItemReply": {
             "type": "object",
             "properties": {
+                "name": {
+                    "type": "string"
+                },
                 "product_id": {
                     "type": "string"
                 },

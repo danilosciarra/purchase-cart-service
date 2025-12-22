@@ -2,8 +2,10 @@ package memory
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"purchase-cart-service/models"
 	"sync"
+	"time"
 )
 
 type OrderRepository struct {
@@ -18,7 +20,8 @@ func NewOrderRepository() *OrderRepository {
 func (o *OrderRepository) Save(ctx context.Context, order *models.Order) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
-
+	order.ID = uuid.NewString()
+	order.CreatedAt = time.Now()
 	o.orders[order.ID] = order
 	return nil
 }
