@@ -32,6 +32,11 @@ func (h *ProductHandler) GetHandlers() []httpapi.HandlersMethods {
 			Route:   "/products",
 			Handler: h.GetAllProducts,
 		},
+		{
+			Method:  "GET",
+			Route:   "/products/:id",
+			Handler: h.GetProductByID,
+		},
 	}
 }
 
@@ -66,4 +71,42 @@ func (h *ProductHandler) GetAllProducts(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+}
+
+// GetProductByID gestisce la richiesta per ottenere un prodotto per ID
+// @Summary Get Product by ID
+// @Description Retrieve a product by its ID
+// @Tags Products
+// @Accept json
+// @Param id path string true "Product ID"
+// @Param country_code query string false "Country Code for VAT calculation"
+// @Produce json
+// @Success 200 {object} ProductResponse
+// @Failure 404 {object} ErrorResponse
+// @Failure 500 {object} ErrorResponse
+// @Router  /api/v1/products/{id} [get]
+func (h *ProductHandler) GetProductByID(c *gin.Context) {
+	productID := c.Param("id")
+	countryCode := c.Query("country_code")
+	productDetail, err := h.domain.GetProductByID(c.Request.Context(), productID, strings.ToUpper(countryCode))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: "Failed to retrieve product"})
+		return
+	}
+	if productDetail == nil {
+		c.JSON(http.StatusNotFound, ErrorResponse{Message: "Product not found"})
+		return
+	}
+
+	response := ProductResponse{
+		ID:           productDetail.ID,
+		Name:         productDetail.Name,
+		Description:  productDetail.Description,
+		Price:        productDetail.Price,
+		VAT:          productDetail.VAT,
+		PriceWithVAT: productDetail.PriceWithVAT,
+	}
+
+	c.JSON(http.StatusOK, response)
+
 }

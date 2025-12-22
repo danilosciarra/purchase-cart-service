@@ -168,6 +168,39 @@ paths:
       summary: Get All Products
       tags:
       - Products
+  /api/v1/products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Country Code for VAT calculation
+        in: query
+        name: country_code
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.ProductResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ErrorResponse'
+      summary: Get Product by ID
+      tags:
+      - Products
   /health:
     get:
       produces:
