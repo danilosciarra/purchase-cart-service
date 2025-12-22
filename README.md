@@ -1,17 +1,17 @@
 # Purchase Cart Service
 
-Servizio REST in **Go/Gin** per creare ordini a partire da una lista di prodotti. Orientato a semplicità e separazione delle responsabilità.
+REST service in **Go/Gin** to create orders from a list of products. Focused on simplicity and separation of concerns.
 
-## Panoramica
+## Overview
 
-Il servizio espone API HTTP per:
-- creare un ordine dato un insieme di items
-- restituire ID ordine, prezzo totale, IVA totale e dettaglio per riga
-- consultare un catalogo prodotti precaricato (non modificabile via API)
+The service exposes HTTP APIs to:
+- create an order from a set of items
+- return order ID, total price, total VAT, and per-line details
+- browse a preloaded product catalog (not editable via API)
 
 ## Quickstart
 
-- Avvio locale:
+- Local run:
 ```bash
 go run ./main.go
 ```
@@ -21,112 +21,113 @@ docker build -t purchase-cart-service .
 docker run -p 8080:8080 purchase-cart-service
 ```
 
-## API (base path: /api/v1)
+## APIs (base path: /api/v1)
 
 - Health Check
   - `GET /api/v1/health` → `200 OK` + `ok`
 - Create Order
   - `POST /api/v1/orders`
-  - Request (decimali):
+  - Request (decimal amounts):
     ```json
     {
+      "country_code":"it",
       "items": [
-        { "product_id": "A123", "quantity": 2, "unit_price": 10.00 }
+        { "product_id": "A123", "quantity": 2, }
       ]
     }
     ```
-  - Response (IVA 22%):
+  - Response (22% VAT):
     ```json
     {
       "order_id": "uuid",
       "total_price": 24.40,
       "total_vat": 4.40,
       "items": [
-        { "product_id": "A123", "quantity": 2, "unit_price": 10.00, "vat": 4.40 }
+        { "product_id": "A123","name":"product name", "quantity": 2, "unit_price": 10.00, "vat": 4.40 }
       ]
     }
     ```
 
 - Products
-  - Catalogo prodotti precaricato all’avvio: non è possibile inserire o modificare prodotti via API.
-  - `GET /api/v1/products` → lista prodotti
-  - `GET /api/v1/products/:id` → dettaglio prodotto per ID
-  // Nota: l’endpoint `POST /api/v1/products` non è disponibile in questo progetto.
+  - Product catalog is preloaded at startup: products cannot be created or modified via API.
+  - `GET /api/v1/products` → product list
+  - `GET /api/v1/products/:id` → product details by ID
+  // Note: `POST /api/v1/products` is not available in this project.
 
-## Architettura
+## Architecture
 
-Architettura a layer, organizzata in sottocartelle per separare le responsabilità.
+Layered architecture, organized in subfolders to separate responsibilities.
 
-Struttura (semplificata):
+Structure (simplified):
 ```
 purchase-cart-service/
-├─ main.go                     # Entrypoint del binario: carica config, avvia Server
+├─ main.go                     # Binary entrypoint: loads config, starts Server
 ├─ cmd/
 │  └─ server/
-│     └─ server.go             # Server HTTP: inizializza router e registra handler
+│     └─ server.go             # HTTP Server: initializes router and registers handlers
 ├─ internal/
-│  ├─ config/                  # Lettura/validazione configurazione (ServiceName, WebApp, Database)
+│  ├─ config/                  # Configuration loading/validation (ServiceName, WebApp, Database)
 │  │  ├─ loader.go
 │  │  └─ model.go
-│  ├─ domain/                  # Modello di dominio e logiche (Order, Item, calcoli IVA/totali)
+│  ├─ domain/                  # Domain model and business logic (Order, Item, VAT/total calculations)
 │  │  ├─ order/
 │  │  │  └─ service.go
-│  │  ├─ product/              # Modello e logiche di prodotto (validazione, trasformazioni)
+│  │  ├─ product/              # Product model and logic (validation, transformations)
 │  │  │  ├─ model.go
 │  │  │  └─ service.go
 │  │  └─ ...
 │  ├─ api/
-│  │  └─ http/                 # Transport HTTP con Gin: router e handler
-│  │     ├─ router.go          # definizione router e registrazione prefissi (/ e /api/v1)
+│  │  └─ http/                 # HTTP transport with Gin: router and handlers
+│  │     ├─ router.go          # router definition and prefix registration (/ and /api/v1)
 │  │     └─ handlers/
-│  │        ├─ healthcheck.go  # handler health
-│  │        ├─ order.go        # handler ordini (lista, dettaglio, creazione)
-│  │        └─ product.go      # handler prodotti (lista, dettaglio)
-├─ repository/                 # repository runtime (es. InMemory) per Order/VatRate
+│  │        ├─ healthcheck.go  # health handler
+│  │        ├─ order.go        # order handlers
+│  │        └─ product.go      # product handlers (list, detail)
+├─ repository/                 # runtime repositories (e.g., InMemory) for Order/VatRate
 │  ├─ order_repository.go
 │  ├─ vat_rate_repository.go
-│  └─ product_repository.go    # storage prodotti (precaricati all’avvio, sola lettura via API)
-├─ docs/                       # Swagger generato (Swaggo)
-├─ config.json                 # Configurazione runtime (ServiceName, WebApp, Database)
+│  └─ product_repository.go    # product storage (preloaded at startup, read-only via API)
+├─ docs                        # Generated Swagger (Swaggo)
+├─ config.json                 # Runtime configuration (ServiceName, WebApp, Database)
 └─ go.mod / go.sum
 ```
 
-Layer e responsabilità:
-- main.go: bootstrap del processo; carica config, costruisce Server e ne avvia l’ascolto.
-- cmd/server: componente Server HTTP; dipende da config, router e servizi di dominio.
-- internal/api/http (Gin): espone le API, valida input, traduce DTO ⇄ dominio, gestisce errori.
+Layers and responsibilities:
+- main.go: process bootstrap; loads config, builds Server, starts listening.
+- cmd/server: HTTP Server component; depends on config, router, and domain services.
+- internal/api/http (Gin): exposes APIs, validates input, maps DTO ⇄ domain, handles errors.
 - internal/service / internal/domain: 
-  - order: coordinano i casi d’uso e contengono le logiche pure (calcoli totali/IVA, creazione ordini).
-  - product: gestione del catalogo prodotti (CRUD lato runtime, validazioni).
-- internal/config: modelli e caricamento della configurazione.
-- repository: interfacce/implementazioni di storage (InMemory/DB).
-  - order_repository: persistenza ordini.
-  - vat_rate_repository: fonte aliquote IVA.
-  - product_repository: persistenza/lookup prodotti; il catalogo è caricato all’avvio e non supporta inserimenti via API.
-- docs: file Swagger generati.
+  - order: orchestrates use cases and contains pure logic (totals/VAT calculations, order creation).
+  - product: product catalog management (runtime validations; no creation via API).
+- internal/config: configuration models and loading.
+- repository: storage interfaces/implementations (InMemory/DB).
+  - order_repository: order persistence.
+  - vat_rate_repository: VAT rate source.
+  - product_repository: product persistence/lookup; the catalog is loaded at startup and does not support inserts via API.
+- docs: generated Swagger files.
 
-## Convenzioni sugli importi
+## Amount conventions
 
-- Importi in formato decimale.
-- `total_price` = totale netto + totale IVA.
-- `items[].vat` = IVA del totale riga.
-- Aliquota degli esempi: 22%.
+- Decimal amounts.
+- `total_price` = net total + total VAT.
+- `items[].vat` = VAT of the line total.
+- Example VAT rate: 22%.
 
-## Documentazione API
+## API documentation
 
-Lo Swagger delle API è generato con **Swaggo**.
+API Swagger is generated using **Swaggo**.
 
-## Configurazione
+## Configuration
 
-Il servizio legge la configurazione da `config.json` (root del progetto). Campi supportati:
-- `ServiceName`: nome del servizio.
-- `WebApp.Hostname`: indirizzo di bind del server HTTP (es. `0.0.0.0`).
-- `WebApp.Port`: porta del server HTTP (es. `8080`).
-- `Database`: configurazione della persistenza.
-  - `Type`: tipo di storage (es. `InMemory`).
-  - `Host`, `Port`, `User`, `Password`, `Name`: parametri del DB (utilizzati se `Type` non è `InMemory`).
+The service reads configuration from `config.json` (project root). Supported fields:
+- `ServiceName`: service name.
+- `WebApp.Hostname`: HTTP server bind address (e.g., `0.0.0.0`).
+- `WebApp.Port`: HTTP server port (e.g., `8080`).
+- `Database`: persistence configuration.
+  - `Type`: storage type (e.g., `InMemory`).
+  - `Host`, `Port`, `User`, `Password`, `Name`: DB parameters (used if `Type` is not `InMemory`).
 
-Esempio:
+Example:
 ```json
 {
   "ServiceName": "purchase-cart",
@@ -145,5 +146,5 @@ Esempio:
 }
 ```
 
-Note:
-- Con `Database.Type = "InMemory"` i parametri del DB possono essere ignorati.
+Notes:
+- With `Database.Type = "InMemory"` DB parameters can be ignored.
