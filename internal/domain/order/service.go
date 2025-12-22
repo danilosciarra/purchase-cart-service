@@ -3,7 +3,6 @@ package order
 import (
 	"context"
 	"errors"
-	"purchase-cart-service/internal/domain/product"
 	"purchase-cart-service/models"
 	"purchase-cart-service/repository"
 	"purchase-cart-service/utils"
@@ -123,21 +122,4 @@ func (s *Service) GetOrderDetail(ctx context.Context, order *models.Order) (*Det
 		TotalVAT:   order.TotalVAT,
 		Items:      products,
 	}, nil
-}
-
-func (s *Service) GetAllProducts(ctx context.Context) ([]product.Detail, error) {
-	products, err := s.productRepo.GetAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var details []product.Detail
-	for _, p := range products {
-		details = append(details, product.Detail{
-			ID:          p.ID,
-			Name:        p.Name,
-			Description: p.Description,
-			Price:       p.Price,
-		})
-	}
-	return details, nil
 }
