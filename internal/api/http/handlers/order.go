@@ -81,8 +81,16 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Invalid request"})
 		return
 	}
+	if req.CountryCode == "" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Country code is required"})
+		return
+	}
 	items := make([]order.CreateItem, 0, len(req.Items))
 	for _, it := range req.Items {
+		if it.Quantity == 0 {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Item quantity must be greater than zero"})
+			return
+		}
 		items = append(items, order.CreateItem{
 			ProductID: it.ProductID,
 			Quantity:  it.Quantity,
@@ -90,6 +98,18 @@ func (h *OrderHandler) CreateOrder(c *gin.Context) {
 	}
 	ord, err := h.domain.CreateOrder(c.Request.Context(), strings.ToUpper(req.CountryCode), items)
 	if err != nil {
+		if err == order.ErrInvalidItem {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Invalid item in order"})
+			return
+		}
+		if err == order.ErrInvalidVATRate {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Invalid VAT rate for country"})
+			return
+		}
+		if err == order.ErrProductNotFound {
+			c.JSON(http.StatusNotFound, ErrorResponse{Message: "Product not found"})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 		return
 	}

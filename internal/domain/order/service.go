@@ -24,12 +24,17 @@ func NewService(orderRepo repository.OrderRepository, vatRepo repository.VatRate
 }
 
 var ErrInvalidItem = errors.New("invalid order item")
+var ErrInvalidVATRate = errors.New("invalid VAT rate")
+var ErrProductNotFound = errors.New("product not found")
 
 func (s *Service) CreateOrder(ctx context.Context, countryCode string, items []CreateItem) (*models.Order, error) {
 	if len(items) == 0 {
 		return nil, ErrInvalidItem
 	}
-
+	vatRate, err := s.vatRepo.GetVATRate(countryCode)
+	if err != nil {
+		return nil, ErrInvalidVATRate
+	}
 	order := &models.Order{}
 	for _, it := range items {
 		product, err := s.productRepo.GetProduct(ctx, it.ProductID)
@@ -37,17 +42,14 @@ func (s *Service) CreateOrder(ctx context.Context, countryCode string, items []C
 			return nil, err
 		}
 		if product == nil {
-			return nil, ErrInvalidItem
+			return nil, ErrProductNotFound
 		}
 		if it.Quantity <= 0 || product.Price <= 0 {
 			return nil, ErrInvalidItem
 		}
 
 		linePrice := float64(it.Quantity) * product.Price
-		vatRate, err := s.vatRepo.GetVATRate(countryCode)
-		if err != nil {
-			return nil, err
-		}
+
 		vat := utils.Round2(linePrice * vatRate)
 		total := utils.Round2(linePrice + vat)
 
