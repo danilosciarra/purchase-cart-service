@@ -9,7 +9,7 @@ import (
 )
 
 type Router struct {
-	router *gin.Engine
+	engine *gin.Engine
 }
 type HandlersMethods struct {
 	Method  string
@@ -27,7 +27,7 @@ type IHandler interface {
 // @BasePath /
 // @schemes http
 
-// NewRouter configures and returns the HTTP router for the service
+// NewRouter configures and returns the HTTP engine for the service
 func NewRouter() *Router {
 	router := gin.Default()
 
@@ -42,11 +42,11 @@ func NewRouter() *Router {
 	// Swagger endpoint
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	return &Router{router: router}
+	return &Router{engine: router}
 }
 
 func (r *Router) RegisterMethods(group string, handlers ...IHandler) {
-	routes := r.router.Group(group)
+	routes := r.engine.Group(group)
 	for _, h := range handlers {
 		for _, handler := range h.GetHandlers() {
 			switch handler.Method {
@@ -64,5 +64,8 @@ func (r *Router) RegisterMethods(group string, handlers ...IHandler) {
 }
 
 func (r *Router) Get() http.Handler {
-	return r.router
+	return r.engine
+}
+func (r *Router) Engine() *gin.Engine {
+	return r.engine
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
+	httpapi "purchase-cart-service/internal/api/http"
 	"purchase-cart-service/internal/api/http/handlers"
 	"purchase-cart-service/internal/domain/product"
 	"purchase-cart-service/repository"
@@ -13,12 +14,10 @@ import (
 
 func setupRouterForProducts() *gin.Engine {
 	gin.SetMode(gin.TestMode)
-	r := gin.New()
 	h := handlers.NewProductHandler(product.NewService(repository.NewProductRepository("InMemory"), repository.NewVatRateRepository("InMemory")))
-	// registra i percorsi /api/v1/products con repository InMemory precaricato
-	r.GET("/api/v1/products", h.GetAllProducts)
-	r.GET("/api/v1/products/:id", h.GetProductByID)
-	return r
+	r := httpapi.NewRouter()
+	r.RegisterMethods("/api/v1", h)
+	return r.Engine()
 }
 
 func TestListProductsHandler_OK(t *testing.T) {

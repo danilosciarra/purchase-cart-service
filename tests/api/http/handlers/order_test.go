@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	httpapi "purchase-cart-service/internal/api/http"
 	"purchase-cart-service/internal/api/http/handlers"
 	"purchase-cart-service/internal/domain/order"
 	"purchase-cart-service/repository"
@@ -17,11 +18,9 @@ import (
 func setupRouterForOrders() *gin.Engine {
 	gin.SetMode(gin.TestMode)
 	h := handlers.NewOrderHandler(order.NewService(repository.NewOrderRepository("InMemory"), repository.NewVatRateRepository("InMemory"), repository.NewProductRepository("InMemory")))
-	r := gin.New()
-	r.POST("/api/v1/orders", h.CreateOrder)
-	r.GET("/api/v1/orders", h.GetOrders)
-	r.GET("/api/v1/orders/:id", h.GetOrder)
-	return r
+	r := httpapi.NewRouter()
+	r.RegisterMethods("/api/v1", h)
+	return r.Engine()
 }
 
 // helper: crea un ordine e restituisce l'order_id
