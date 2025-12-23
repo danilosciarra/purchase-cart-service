@@ -44,7 +44,7 @@ func TestCreateOrder_CalcolaTotaliEIVA(t *testing.T) {
 
 	// Verifica IVA di riga
 	// Riga prod1: 2*10 = 20; IVA = 4.40
-	// Riga prod2: 1*5 = 5; IVA = 1.10
+	// Riga prod2: 1*20 = 5; IVA = 4.40
 	var prod1VAT, prod2VAT float64
 	for _, it := range res.Items {
 		switch it.ProductID {
