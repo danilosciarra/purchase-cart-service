@@ -14,7 +14,7 @@ func init() {
 
 }
 
-func TestCreateOrder_CalcolaTotaliEIVA(t *testing.T) {
+func TestCreateOrder_CalcTotalsAndVAT(t *testing.T) {
 	// Arrange
 	svc := order.NewService(repository.NewOrderRepository("InMemory"), repository.NewVatRateRepository("InMemory"), repository.NewProductRepository("InMemory"))
 	req := []order.CreateItem{
