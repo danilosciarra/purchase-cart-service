@@ -30,6 +30,15 @@ docker run -p 8080:8080 purchase-cart-service
 
 ---
 
+## Swagger
+
+Swagger documentation is generated using **Swaggo**.
+
+After run service, swagger its present at:
+http://localhost:8080/swagger/index.html
+---
+
+
 ## API (base path: `/api/v1`)
 
 ### Health check
@@ -159,10 +168,6 @@ Notes:
 - With `Database.Type = "InMemory"` DB parameters can be ignored.
 
 ---
-
-## Notes
-
-- Swagger documentation is generated using **Swaggo**.
 
 ---
 
